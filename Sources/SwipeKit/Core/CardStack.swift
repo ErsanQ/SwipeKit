@@ -1,52 +1,62 @@
 import SwiftUI
 
-/// A component that renders a stack of swipable cards.
-public struct CardStack<T: Identifiable & Equatable, Content: View>: View {
-    @Binding var items: [T]
-    let content: (T) -> Content
-    let onSwipe: (T, SwipeDirection) -> Void
+/// A stack of cards that can be swiped in different directions.
+@MainActor
+public struct CardStack<Data: Identifiable, Content: View>: View {
+    private let data: [Data]
+    private let content: (Data) -> Content
+    private let onSwipe: (Data, SwipeDirection) -> Void
     
-    public init(
-        items: Binding<[T]>,
-        @ViewBuilder content: @escaping (T) -> Content,
-        onSwipe: @escaping (T, SwipeDirection) -> Void
-    ) {
-        self._items = items
-        self.content = content
+    public init(_ data: [Data], onSwipe: @escaping (Data, SwipeDirection) -> Void, @ViewBuilder content: @escaping (Data) -> Content) {
+        self.data = data
         self.onSwipe = onSwipe
+        self.content = content
     }
     
     public var body: some View {
         ZStack {
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                if index >= items.count - 3 { // Only show top 3 cards for performance
+            ForEach(data.reversed()) { item in
+                CardView(item: item, onSwipe: onSwipe) {
                     content(item)
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 4)
-                        .padding(.top, CGFloat((items.count - 1 - index) * 10))
-                        .scaleEffect(1 - CGFloat((items.count - 1 - index) * 0.05))
-                        .zIndex(Double(index))
-                        // Apply swipe ONLY to the top card
-                        .modifier(SwipeEnabler(isEnabled: index == items.count - 1) { direction in
-                            onSwipe(item, direction)
-                            // Note: Implementation for removing item is left to user or handled here
-                        })
                 }
             }
         }
     }
 }
 
-private struct SwipeEnabler: ViewModifier {
-    let isEnabled: Bool
-    let onSwipePerformed: (SwipeDirection) -> Void
+@MainActor
+private struct CardView<Data: Identifiable, Content: View>: View {
+    let item: Data
+    let onSwipe: (Data, SwipeDirection) -> Void
+    let content: Content
     
-    func body(content: Content) -> some View {
-        if isEnabled {
-            content.onSwipe(onSwipe: onSwipePerformed)
-        } else {
-            content
-        }
+    @State private var offset: CGSize = .zero
+    
+    init(item: Data, onSwipe: @escaping (Data, SwipeDirection) -> Void, @ViewBuilder content: () -> Content) {
+        self.item = item
+        self.onSwipe = onSwipe
+        self.content = content()
+    }
+    
+    var body: some View {
+        content
+            .offset(offset)
+            .rotationEffect(.degrees(Double(offset.width / 20)))
+            .gesture(
+                DragGesture()
+                    .onChanged { gesture in
+                        offset = gesture.translation
+                    }
+                    .onEnded { _ in
+                        if abs(offset.width) > 100 {
+                            let direction: SwipeDirection = offset.width > 0 ? .right : .left
+                            onSwipe(item, direction)
+                        } else {
+                            withAnimation(.spring()) {
+                                offset = .zero
+                            }
+                        }
+                    }
+            )
     }
 }
