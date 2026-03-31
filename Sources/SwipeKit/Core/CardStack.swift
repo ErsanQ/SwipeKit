@@ -1,12 +1,30 @@
 import SwiftUI
 
-/// A stack of cards that can be swiped in different directions.
+/// A Tinder-style card stack component for fluid swipe interactions.
+///
+/// `CardStack` manages a collection of identifiable data and renders them as
+/// an interactive deck. Users can swipe cards left or right to trigger actions.
+///
+/// ## Usage
+/// ```swift
+/// CardStack(users) { user, direction in
+///     print("Swiped \(user.name) to the \(direction)")
+/// } content: { user in
+///     UserCardView(user: user)
+/// }
+/// ```
 @MainActor
 public struct CardStack<Data: Identifiable, Content: View>: View {
     private let data: [Data]
     private let content: (Data) -> Content
     private let onSwipe: (Data, SwipeDirection) -> Void
     
+    /// Creates a new CardStack.
+    ///
+    /// - Parameters:
+    ///   - data: The array of items to display in the stack.
+    ///   - onSwipe: A closure called when a card is swiped past the threshold.
+    ///   - content: A view builder that defines the appearance of each card.
     public init(_ data: [Data], onSwipe: @escaping (Data, SwipeDirection) -> Void, @ViewBuilder content: @escaping (Data) -> Content) {
         self.data = data
         self.onSwipe = onSwipe
@@ -24,6 +42,7 @@ public struct CardStack<Data: Identifiable, Content: View>: View {
     }
 }
 
+/// An internal view that handles the individual drag gesture and animation for a single card.
 @MainActor
 private struct CardView<Data: Identifiable, Content: View>: View {
     let item: Data
