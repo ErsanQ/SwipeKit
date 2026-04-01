@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 public extension View {
@@ -41,9 +42,9 @@ private struct SwipeModifier: ViewModifier {
         } else if offset.width < -threshold {
             triggerSwipe(.left)
         } else if offset.height < -threshold {
-            triggerSwipe(.top)
+            triggerSwipe(.up)
         } else if offset.height > threshold {
-            triggerSwipe(.bottom)
+            triggerSwipe(.down)
         } else {
             // Snap back
             offset = .zero
@@ -52,7 +53,7 @@ private struct SwipeModifier: ViewModifier {
     
     private func triggerSwipe(_ direction: SwipeDirection) {
         let width: CGFloat = direction == .right ? 500 : (direction == .left ? -500 : 0)
-        let height: CGFloat = direction == .bottom ? 500 : (direction == .top ? -500 : 0)
+        let height: CGFloat = direction == .down ? 500 : (direction == .up ? -500 : 0)
         
         withAnimation(.easeOut(duration: 0.3)) {
             offset = CGSize(width: width, height: height)
@@ -65,3 +66,4 @@ private struct SwipeModifier: ViewModifier {
         }
     }
 }
+#endif

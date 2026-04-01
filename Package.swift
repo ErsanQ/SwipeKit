@@ -21,6 +21,7 @@ let package = Package(
         .target(
             name: "SwipeKit",
             dependencies: [],
-            path: "Sources/SwipeKit"),
+            path: "Sources/SwipeKit",
+            exclude: ["Examples"]),
     ]
 )

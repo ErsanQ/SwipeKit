@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 import SwipeKit
 
@@ -108,3 +109,4 @@ struct ActionButton: View {
 #Preview {
     SwipeExampleView()
 }
+#endif

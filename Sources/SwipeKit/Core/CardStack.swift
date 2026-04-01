@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 /// A Tinder-style card stack component for fluid swipe interactions.
@@ -79,3 +80,4 @@ private struct CardView<Data: Identifiable, Content: View>: View {
             )
     }
 }
+#endif
